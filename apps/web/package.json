@@ -11,6 +11,9 @@
     "db:seed": "tsx --env-file-if-exists=../../.env scripts/seed.ts"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@hospedagens/core": "workspace:*",
     "@hospedagens/db": "workspace:*",
     "better-auth": "1.7.7",
@@ -23,6 +26,7 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "server-only": "^0.0.1",
+    "sonner": "^2.0.8",
     "tailwind-merge": "^3.7.0",
     "zod": "^4.6.5"
   },

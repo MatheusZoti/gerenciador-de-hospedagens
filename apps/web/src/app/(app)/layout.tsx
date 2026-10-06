@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { SIDEBAR_COOKIE } from "@/components/layout/sidebar-state";
+import { Toaster } from "@/components/ui/sonner";
 import { requireAppSession } from "@/lib/session";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -27,6 +28,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           {children}
         </main>
       </div>
+      <Toaster />
     </div>
   );
 }

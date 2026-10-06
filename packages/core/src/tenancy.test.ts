@@ -1,13 +1,13 @@
-import { type Database, user } from "@hospedagens/db";
+import type { Database } from "@hospedagens/db";
 import { createTestDb } from "@hospedagens/db/testing";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { TenantContext } from "./context";
 import { createLead, listLeadsByStage } from "./leads/service";
-import { bootstrapOrganization } from "./organizations/bootstrap";
 import { DEFAULT_PIPELINE_STAGES } from "./pipeline/defaults";
 import { getFunnelSummary, listStages } from "./pipeline/service";
 import { createProperty, listProperties } from "./properties/service";
 import { NotFoundError } from "./shared/errors";
+import { createTenant } from "./test-utils";
 
 /**
  * Garante o isolamento entre organizações (tenants): nada criado em uma
@@ -19,17 +19,10 @@ describe("multi-tenancy", () => {
   let ctxA: TenantContext;
   let ctxB: TenantContext;
 
-  async function createTenant(name: string): Promise<TenantContext> {
-    const userId = crypto.randomUUID();
-    await db.insert(user).values({ id: userId, name, email: `${userId}@teste.dev` });
-    const { organizationId } = await bootstrapOrganization(db, { userId, name: `Org ${name}` });
-    return { organizationId, userId, role: "owner" };
-  }
-
   beforeAll(async () => {
     ({ db, close } = await createTestDb());
-    ctxA = await createTenant("Ana");
-    ctxB = await createTenant("Bruno");
+    ctxA = await createTenant(db, "Ana");
+    ctxB = await createTenant(db, "Bruno");
   });
 
   afterAll(async () => {

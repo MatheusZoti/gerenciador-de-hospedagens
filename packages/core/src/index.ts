@@ -11,4 +11,5 @@ export * from "./pipeline/defaults";
 export * from "./pipeline/service";
 export * from "./properties/service";
 export * from "./shared/errors";
+export * from "./shared/money";
 export * from "./shared/slug";
