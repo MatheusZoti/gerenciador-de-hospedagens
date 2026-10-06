@@ -1,4 +1,4 @@
-import { listLeadsByStage } from "@hospedagens/core";
+import { getMessageTemplates, listLeadsByStage } from "@hospedagens/core";
 import { getDb } from "@hospedagens/db";
 import { Plus } from "lucide-react";
 import type { Metadata } from "next";
@@ -12,8 +12,17 @@ import { toKanbanColumns } from "@/modules/pipeline/kanban-data";
 export const metadata: Metadata = { title: "Kanban" };
 
 export default async function KanbanPage() {
-  const { ctx } = await requireAppSession();
-  const columns = toKanbanColumns(await listLeadsByStage(getDb(), ctx));
+  const { ctx, organization } = await requireAppSession();
+  const db = getDb();
+  const [board, templates] = await Promise.all([
+    listLeadsByStage(db, ctx),
+    getMessageTemplates(db, ctx),
+  ]);
+  const columns = toKanbanColumns(board, {
+    timeZone: organization.timeZone,
+    templates,
+    organizationName: organization.name,
+  });
 
   return (
     <div className="flex flex-col gap-6">

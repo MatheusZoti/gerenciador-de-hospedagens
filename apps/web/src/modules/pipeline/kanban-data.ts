@@ -1,19 +1,44 @@
 import "server-only";
 import {
   type BoardColumn,
-  defaultWhatsAppMessage,
+  composeLeadMessage,
+  type MessageTemplates,
   type MessagingProvider,
+  pickTemplate,
   WaMeLinkProvider,
 } from "@hospedagens/core";
-import { DEFAULT_TIME_ZONE, formatMessageTime, formatPeriod } from "@/lib/format";
+import { formatMessageTime, formatPeriod } from "@/lib/format";
 import type { KanbanColumn } from "./kanban-types";
 
 const messaging: MessagingProvider = new WaMeLinkProvider();
 
-export function toKanbanColumns(
-  columns: BoardColumn[],
-  { timeZone = DEFAULT_TIME_ZONE }: { timeZone?: string } = {},
-): KanbanColumn[] {
+export interface KanbanContext {
+  timeZone: string;
+  organizationName: string;
+  templates: MessageTemplates;
+}
+
+/** Link do WhatsApp com o modelo de mensagem da etapa do lead. */
+export function whatsappLinkFor(
+  lead: {
+    name: string;
+    phone: string | null;
+    stageId: string;
+    propertyName: string | null;
+    desiredCheckIn: string | null;
+    desiredCheckOut: string | null;
+    guests: number | null;
+  },
+  { templates, organizationName }: Pick<KanbanContext, "templates" | "organizationName">,
+): string | null {
+  if (!lead.phone) return null;
+  const text = composeLeadMessage(pickTemplate(templates, lead.stageId), lead, {
+    organizationName,
+  });
+  return messaging.getConversationLink(lead.phone, text);
+}
+
+export function toKanbanColumns(columns: BoardColumn[], context: KanbanContext): KanbanColumn[] {
   return columns.map((column) => ({
     stage: {
       id: column.stage.id,
@@ -28,15 +53,10 @@ export function toKanbanColumns(
       href: `/leads/${lead.id}`,
       propertyName: lead.propertyName,
       lastMessageLabel: lead.lastMessageAt
-        ? formatMessageTime(lead.lastMessageAt, { timeZone })
+        ? formatMessageTime(lead.lastMessageAt, { timeZone: context.timeZone })
         : "Sem mensagens",
       periodLabel: formatPeriod(lead.desiredCheckIn, lead.desiredCheckOut),
-      whatsappUrl: lead.phone
-        ? messaging.getConversationLink(
-            lead.phone,
-            defaultWhatsAppMessage({ leadName: lead.name, propertyName: lead.propertyName }),
-          )
-        : null,
+      whatsappUrl: whatsappLinkFor(lead, context),
     })),
   }));
 }

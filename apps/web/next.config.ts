@@ -12,6 +12,10 @@ const nextConfig: NextConfig = {
   transpilePackages: ["@hospedagens/core", "@hospedagens/db"],
   serverExternalPackages: ["pg"],
   typedRoutes: true,
+  experimental: {
+    // Upload da foto de perfil (até 2 MB) passa por Server Action.
+    serverActions: { bodySizeLimit: "3mb" },
+  },
 };
 
 export default nextConfig;

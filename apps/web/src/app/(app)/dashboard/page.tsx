@@ -1,4 +1,4 @@
-import { getFunnelSummary, listLeadsByStage } from "@hospedagens/core";
+import { getFunnelSummary, getMessageTemplates, listLeadsByStage } from "@hospedagens/core";
 import { getDb } from "@hospedagens/db";
 import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
@@ -16,19 +16,21 @@ import { toKanbanColumns } from "@/modules/pipeline/kanban-data";
 export const metadata: Metadata = { title: "Dashboard" };
 
 export default async function DashboardPage() {
-  const { ctx, user } = await requireAppSession();
+  const { ctx, user, organization } = await requireAppSession();
   const db = getDb();
-  const [funnel, board] = await Promise.all([
+  const [funnel, board, templates] = await Promise.all([
     getFunnelSummary(db, ctx),
     listLeadsByStage(db, ctx, { kinds: ["open"], limitPerStage: 3 }),
+    getMessageTemplates(db, ctx),
   ]);
   const firstName = user.name.split(" ")[0];
+  const { timeZone } = organization;
 
   return (
     <div className="flex flex-col gap-10">
       <PageHeader
-        title={`${greeting()}, ${firstName}`}
-        description={`Resumo do funil de vendas e das finanças · ${monthLabel()}`}
+        title={`${greeting({ timeZone })}, ${firstName}`}
+        description={`Resumo do funil de vendas e das finanças · ${monthLabel({ timeZone })}`}
       />
 
       <section aria-labelledby="funil" className="flex flex-col gap-4">
@@ -49,7 +51,13 @@ export default async function DashboardPage() {
             </Link>
           </Button>
         </div>
-        <KanbanPreview columns={toKanbanColumns(board)} />
+        <KanbanPreview
+          columns={toKanbanColumns(board, {
+            timeZone,
+            templates,
+            organizationName: organization.name,
+          })}
+        />
       </section>
 
       <section aria-labelledby="financeiro" className="flex flex-col gap-4">

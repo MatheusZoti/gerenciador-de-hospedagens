@@ -1,6 +1,11 @@
 import "server-only";
-import type { MemberRole, TenantContext } from "@hospedagens/core";
-import { getDb, member, organization } from "@hospedagens/db";
+import {
+  canManageOrganization,
+  DEFAULT_TIME_ZONE,
+  type MemberRole,
+  type TenantContext,
+} from "@hospedagens/core";
+import { getDb, member, organization, organizationSettings } from "@hospedagens/db";
 import { and, asc, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -18,7 +23,9 @@ export interface AppSession {
     image?: string | null;
     jobTitle?: string | null;
   };
-  organization: { id: string; name: string; slug: string };
+  organization: { id: string; name: string; slug: string; timeZone: string };
+  /** Pode alterar configurações, funil e modelos (owner/admin). */
+  canManage: boolean;
 }
 
 /**
@@ -38,18 +45,21 @@ export const requireAppSession = cache(async (): Promise<AppSession> => {
     throw new Error("Usuário sem organização. Rode o seed ou crie uma nova conta.");
   }
 
+  const ctx: TenantContext = {
+    organizationId: membership.organizationId,
+    userId: current.user.id,
+    role: membership.role as MemberRole,
+  };
   return {
-    ctx: {
-      organizationId: membership.organizationId,
-      userId: current.user.id,
-      role: membership.role as MemberRole,
-    },
+    ctx,
     user: current.user,
     organization: {
       id: membership.organizationId,
       name: membership.organizationName,
       slug: membership.organizationSlug,
+      timeZone: membership.timeZone ?? DEFAULT_TIME_ZONE,
     },
+    canManage: canManageOrganization(ctx),
   };
 });
 
@@ -62,9 +72,14 @@ async function findMembership(userId: string, activeOrganizationId?: string) {
         role: member.role,
         organizationName: organization.name,
         organizationSlug: organization.slug,
+        timeZone: organizationSettings.timeZone,
       })
       .from(member)
       .innerJoin(organization, eq(organization.id, member.organizationId))
+      .leftJoin(
+        organizationSettings,
+        eq(organizationSettings.organizationId, member.organizationId),
+      )
       .where(
         organizationId
           ? and(eq(member.userId, userId), eq(member.organizationId, organizationId))

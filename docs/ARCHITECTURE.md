@@ -100,7 +100,9 @@ app (páginas)  →  modules/*/actions  →  @hospedagens/core  →  @hospedagen
 - O `core` não importa nada de `next`, `react` ou `better-auth`.
 - Componentes de cliente (`"use client"`) só importam **tipos** do `core`;
   os dados chegam prontos do servidor. Assim o driver do banco nunca vai
-  para o navegador.
+  para o navegador. A exceção são módulos **puros** expostos por subpath:
+  hoje só `@hospedagens/core/templates`, usado na pré-visualização dos
+  modelos de mensagem.
 - O `db` não conhece regras de negócio: só tabelas, tipos e conexão.
 
 ## Multi-tenancy
@@ -115,6 +117,8 @@ app (páginas)  →  modules/*/actions  →  @hospedagens/core  →  @hospedagen
   `ctx.organizationId`. Referências cruzadas (etapa, imóvel) são validadas
   contra o tenant, como em `createLead`. Os testes em
   `packages/core/src/tenancy.test.ts` cobrem esse isolamento.
+- **Papéis:** `owner` e `admin` alteram configurações, funil e modelos
+  (`assertCanManageOrganization` no `core`); `member` só usa o CRM.
 - **Segunda camada (fase 7):** Row Level Security no Postgres, antes de abrir
   para clientes externos.
 
@@ -137,6 +141,7 @@ app (páginas)  →  modules/*/actions  →  @hospedagens/core  →  @hospedagen
 | `MessagingProvider` | `WaMeLinkProvider`: abre a conversa em `wa.me` com mensagem preenchida | WhatsApp Cloud API (fase 4): enviar, receber por webhook, templates |
 | `CalendarChannel` | — | `AirbnbIcalChannel` (fase 2): importa o iCal a cada 15 min. Exportação de iCal do CRM para o Airbnb bloquear datas |
 | `PaymentProvider` | — | Registro manual (fase 3). Depois Asaas ou Mercado Pago: Pix com baixa por webhook |
+| `FileStorage` | Cloudflare R2 via SDK S3 (`apps/web/src/lib/storage/r2.ts`): fotos de perfil | Fotos dos imóveis, documentos de reserva |
 
 **Site de reservas (fase 5):** ele vai consumir `/api/public/v1`
 (disponibilidade, cotação, pedido de reserva), autenticado por chave de API por

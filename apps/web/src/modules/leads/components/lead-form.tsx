@@ -1,13 +1,12 @@
 "use client";
 
-import { startTransition, useActionState, useEffect } from "react";
-import { toast } from "sonner";
 import { FormAlert, FormField, fieldProps } from "@/components/form-field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
-import { type ActionState, idleState } from "@/lib/action-state";
+import type { ActionState } from "@/lib/action-state";
+import { useFormAction } from "@/lib/use-form-action";
 
 export interface LeadFormValues {
   name: string;
@@ -46,24 +45,11 @@ export function LeadForm({
   submitLabel: string;
   showLostReason?: boolean;
 }) {
-  const [state, dispatch, pending] = useActionState(action, idleState);
-  const errors = state.fieldErrors ?? {};
-
-  useEffect(() => {
-    if (state.status === "success" && state.message) toast.success(state.message);
-  }, [state]);
-
-  // onSubmit (em vez de `action`) evita que o React limpe os campos quando a
-  // validação falha no servidor.
-  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    startTransition(() => dispatch(form));
-  }
+  const { onSubmit, pending, errors, formError } = useFormAction(action);
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6">
-      <FormAlert message={state.status === "error" ? state.message : undefined} />
+      <FormAlert message={formError} />
 
       <fieldset className="grid gap-4 sm:grid-cols-2">
         <legend className="mb-3 font-medium text-foreground text-sm">Contato</legend>

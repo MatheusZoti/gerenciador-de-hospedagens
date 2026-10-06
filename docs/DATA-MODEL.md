@@ -65,6 +65,27 @@ erDiagram
   lead ||--o{ lead_activity : historico
 ```
 
+### Configurações (fase 1, bloco 2)
+
+**`organization_settings`**: preferências da organização, uma linha por
+organização. Sem linha, valem os padrões.
+`organization_id` (PK), `time_zone` (IANA, padrão `America/Sao_Paulo`). Fica
+fora da tabela `organization` do Better Auth de propósito.
+
+**`message_template`**: modelos de mensagem do WhatsApp.
+`stage_id` nulo indica o modelo padrão da organização; com etapa, é o modelo
+daquela etapa. A constraint única `(organization_id, stage_id)` com
+`NULLS NOT DISTINCT` garante um modelo por etapa e um único padrão. Excluir a
+etapa apaga o modelo dela (`on delete cascade`).
+
+**Regras do funil:**
+- "Fechado" (`won`) e "Perdido" (`lost`) ficam sempre no fim e não podem ser
+  excluídas.
+- Etapas novas são `open` e entram antes delas.
+- O funil precisa de pelo menos uma etapa aberta.
+- Excluir uma etapa com leads exige escolher o destino; cada lead movido
+  ganha um `stage_changed` com `reason: "stage_deleted"`.
+
 > Datas importantes do lead: o aniversário fica em `lead.birthday`; a última
 > estadia virá das reservas (fase 2). Uma tabela própria de datas só será
 > criada se surgir necessidade de datas livres com lembrete.
@@ -73,7 +94,6 @@ erDiagram
 
 | Tabela | Fase | Campos principais |
 |---|---|---|
-| `organization_settings` | 1 | `time_zone` (padrão `America/Sao_Paulo`), `currency`, modelos de mensagem |
 | `api_key` | 1 | `organization_id`, `name`, `hash`, `last_used_at` (API pública / site) |
 | `reservation` | 2 | `property_id`, `lead_id`, `channel` (`direct`/`airbnb`/`booking`), `check_in`, `check_out`, `guests`, `status` (`hold`/`confirmed`/`cancelled`/`completed`), `total_cents`, `external_uid` |
 | `calendar_feed` | 2 | `property_id`, `channel`, `import_url`, `last_synced_at`, `last_error` |

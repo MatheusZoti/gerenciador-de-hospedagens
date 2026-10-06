@@ -19,3 +19,9 @@ export class ValidationError extends DomainError {
     super(message, "VALIDATION");
   }
 }
+
+export class ForbiddenError extends DomainError {
+  constructor(message = "Você não tem permissão para esta ação") {
+    super(message, "FORBIDDEN");
+  }
+}
