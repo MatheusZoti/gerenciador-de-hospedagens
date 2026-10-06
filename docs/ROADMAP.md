@@ -39,12 +39,18 @@ Objetivo: usar o CRM de verdade para acompanhar todos os leads. Entregue em
       mover etapa e reordenar, registrando `stage_changed` na linha do tempo
 - [x] "Registrar conversa agora" atualiza a última mensagem (até a fase 4)
 
-**Bloco 2: configurações, modelos de mensagem e perfil**
+**Bloco 2 ✅: configurações, modelos de mensagem e perfil**
 
-- [ ] **Modelos de mensagem** do WhatsApp por etapa (com variáveis: nome,
-      imóvel, datas)
-- [ ] **Configurações**: nome e fuso da organização, etapas do funil
-- [ ] **Perfil**: foto (Cloudflare R2), nome, cargo
+- [x] **Organização**: nome e fuso horário (os horários de todo o app seguem
+      o fuso escolhido)
+- [x] **Funil**: renomear, trocar cor, reordenar, criar e excluir etapas
+      (os leads vão para a etapa escolhida, com registro na linha do tempo)
+- [x] **Modelos de mensagem** do WhatsApp por etapa, com variáveis (nome,
+      imóvel, datas, hóspedes, organização) e pré-visualização ao vivo
+- [x] **Perfil**: nome, cargo e foto (Cloudflare R2, ver
+      `docs/setup/cloudflare-r2.md`)
+- [x] Permissões: só owner/admin alteram configurações; membros veem em modo
+      leitura
 
 **Bloco 3: API pública e testes E2E**
 

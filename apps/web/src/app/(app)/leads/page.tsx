@@ -5,7 +5,6 @@ import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
-import { DEFAULT_TIME_ZONE } from "@/lib/format";
 import { requireAppSession } from "@/lib/session";
 import { LeadsFilters, type LeadsFilterValues } from "@/modules/leads/components/leads-filters";
 import { LeadsTable } from "@/modules/leads/components/leads-table";
@@ -27,7 +26,7 @@ export default async function LeadsPage({ searchParams }: PageProps<"/leads">) {
   };
   const page = Math.max(1, Number.parseInt(param("pagina") ?? "1", 10) || 1);
 
-  const { ctx } = await requireAppSession();
+  const { ctx, organization } = await requireAppSession();
   const db = getDb();
   const [result, stages, properties] = await Promise.all([
     listLeads(db, ctx, {
@@ -89,7 +88,7 @@ export default async function LeadsPage({ searchParams }: PageProps<"/leads">) {
         </div>
       ) : (
         <>
-          <LeadsTable leads={result.rows} timeZone={DEFAULT_TIME_ZONE} />
+          <LeadsTable leads={result.rows} timeZone={organization.timeZone} />
           <nav
             aria-label="Paginação"
             className="flex items-center justify-between gap-3 text-muted-foreground text-sm"

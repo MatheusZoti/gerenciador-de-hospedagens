@@ -32,16 +32,19 @@ const SECTIONS: Section[] = [
     title: "Organização",
     description: "Nome da organização e fuso horário.",
     icon: Settings,
+    href: "/configuracoes/organizacao",
   },
   {
     title: "Funil de vendas",
     description: "Renomear, reordenar e criar etapas do funil.",
     icon: Columns3,
+    href: "/configuracoes/funil",
   },
   {
     title: "Modelos de mensagem",
     description: "Textos do WhatsApp por etapa, com nome, imóvel e datas.",
     icon: MessageSquareText,
+    href: "/configuracoes/mensagens",
   },
   {
     title: "Integrações",

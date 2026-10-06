@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { normalizePhone } from "./phone";
-import { defaultWhatsAppMessage, WaMeLinkProvider } from "./wa-me";
+import { WaMeLinkProvider } from "./wa-me";
 
 describe("normalizePhone", () => {
   it.each([
@@ -33,17 +33,5 @@ describe("WaMeLinkProvider", () => {
 
   it("retorna null para telefone inválido", () => {
     expect(provider.getConversationLink("123")).toBeNull();
-  });
-});
-
-describe("defaultWhatsAppMessage", () => {
-  it("usa o primeiro nome e o imóvel de interesse", () => {
-    expect(defaultWhatsAppMessage({ leadName: "Ana Souza", propertyName: "Chalé da Serra" })).toBe(
-      "Olá, Ana! Tudo bem? Estou entrando em contato sobre a hospedagem Chalé da Serra.",
-    );
-  });
-
-  it("funciona sem imóvel", () => {
-    expect(defaultWhatsAppMessage({ leadName: "Ana" })).toBe("Olá, Ana! Tudo bem?");
   });
 });

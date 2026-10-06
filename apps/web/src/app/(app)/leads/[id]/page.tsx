@@ -1,11 +1,10 @@
 import {
-  defaultWhatsAppMessage,
   getLead,
+  getMessageTemplates,
   listLeadActivities,
   listProperties,
   listStages,
   NotFoundError,
-  WaMeLinkProvider,
 } from "@hospedagens/core";
 import { getDb } from "@hospedagens/db";
 import { ArrowLeft, MessageCircle, MessageSquarePlus } from "lucide-react";
@@ -15,7 +14,7 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { DEFAULT_TIME_ZONE, formatMessageTime, formatPhone } from "@/lib/format";
+import { formatMessageTime, formatPhone } from "@/lib/format";
 import { requireAppSession } from "@/lib/session";
 import {
   addLeadNoteAction,
@@ -29,33 +28,28 @@ import { LeadTimeline } from "@/modules/leads/components/lead-timeline";
 import { NoteForm } from "@/modules/leads/components/note-form";
 import { SOURCE_LABEL, SOURCE_OPTIONS } from "@/modules/leads/labels";
 import { StageLabel } from "@/modules/pipeline/components/stage-label";
+import { whatsappLinkFor } from "@/modules/pipeline/kanban-data";
 
 export const metadata: Metadata = { title: "Lead" };
 
-const messaging = new WaMeLinkProvider();
-
 export default async function LeadPage({ params }: PageProps<"/leads/[id]">) {
   const { id } = await params;
-  const { ctx } = await requireAppSession();
+  const { ctx, organization } = await requireAppSession();
   const db = getDb();
 
   const lead = await getLead(db, ctx, id).catch((error: unknown) => {
     if (error instanceof NotFoundError) notFound();
     throw error;
   });
-  const [activities, stages, properties] = await Promise.all([
+  const [activities, stages, properties, templates] = await Promise.all([
     listLeadActivities(db, ctx, id),
     listStages(db, ctx),
     listProperties(db, ctx),
+    getMessageTemplates(db, ctx),
   ]);
 
-  const timeZone = DEFAULT_TIME_ZONE;
-  const whatsappUrl = lead.phone
-    ? messaging.getConversationLink(
-        lead.phone,
-        defaultWhatsAppMessage({ leadName: lead.name, propertyName: lead.propertyName }),
-      )
-    : null;
+  const { timeZone } = organization;
+  const whatsappUrl = whatsappLinkFor(lead, { templates, organizationName: organization.name });
   // Imóveis inativos só aparecem se já forem o interesse deste lead.
   const propertyOptions = properties
     .filter((item) => item.isActive || item.id === lead.propertyOfInterestId)

@@ -14,12 +14,3 @@ export class WaMeLinkProvider implements MessagingProvider {
     return url.toString();
   }
 }
-
-/** Mensagem inicial padrão. Na fase 1 vira modelo configurável por etapa. */
-export function defaultWhatsAppMessage(input: { leadName: string; propertyName?: string | null }) {
-  const firstName = input.leadName.trim().split(/\s+/)[0] ?? "";
-  const greeting = firstName ? `Olá, ${firstName}! Tudo bem?` : "Olá! Tudo bem?";
-  return input.propertyName
-    ? `${greeting} Estou entrando em contato sobre a hospedagem ${input.propertyName}.`
-    : greeting;
-}

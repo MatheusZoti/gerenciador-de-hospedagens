@@ -1,4 +1,8 @@
-/** Fuso padrão das organizações (configurável por organização na fase 1). */
+/**
+ * Fuso padrão quando nenhum é informado. Telas devem passar o fuso da
+ * organização (`requireAppSession().organization.timeZone`). Mantido aqui (e
+ * não importado do core) porque este arquivo também é usado no navegador.
+ */
 export const DEFAULT_TIME_ZONE = "America/Sao_Paulo";
 
 const dayKey = (date: Date, timeZone: string) =>

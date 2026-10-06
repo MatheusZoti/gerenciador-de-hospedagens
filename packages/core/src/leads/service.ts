@@ -6,6 +6,7 @@ import type { StageKind } from "../pipeline/defaults";
 import { listStages, type PipelineStage } from "../pipeline/service";
 import { assertPropertyInTenant } from "../properties/service";
 import { NotFoundError, ValidationError } from "../shared/errors";
+import { type LeadActivityType, recordLeadActivity } from "./activity";
 import {
   type CreateLeadInput,
   createLeadSchema,
@@ -21,7 +22,7 @@ import {
 } from "./schemas";
 
 export type Lead = typeof lead.$inferSelect;
-export type LeadActivityType = (typeof leadActivity.$inferSelect)["type"];
+export type { LeadActivityType } from "./activity";
 
 /** Dados de um card do Kanban. */
 export interface BoardLead {
@@ -234,7 +235,7 @@ export async function createLead(
       .returning();
     if (!created) throw new Error("Falha ao criar lead");
 
-    await recordActivity(tx, ctx, created.id, "created", {
+    await recordLeadActivity(tx, ctx, created.id, "created", {
       stageId: stage.id,
       stageName: stage.name,
       source: created.source,
@@ -304,7 +305,7 @@ export async function addLeadNote(
 ) {
   const { text } = leadNoteSchema.parse(input);
   await findLead(db, ctx, leadId);
-  await recordActivity(db, ctx, leadId, "note", { text });
+  await recordLeadActivity(db, ctx, leadId, "note", { text });
 }
 
 /**
@@ -319,7 +320,7 @@ export async function logLeadMessage(db: Database, ctx: TenantContext, leadId: s
       .where(leadInTenant(ctx, leadId))
       .returning({ id: lead.id });
     if (updated.length === 0) throw new NotFoundError("Lead");
-    await recordActivity(tx, ctx, leadId, "message", {});
+    await recordLeadActivity(tx, ctx, leadId, "message", {});
   });
 }
 
@@ -383,7 +384,7 @@ async function moveLeadInTx(
       .select({ name: pipelineStage.name })
       .from(pipelineStage)
       .where(eq(pipelineStage.id, current.stageId));
-    await recordActivity(tx, ctx, leadId, "stage_changed", {
+    await recordLeadActivity(tx, ctx, leadId, "stage_changed", {
       fromStageId: current.stageId,
       fromStageName: from?.name ?? null,
       toStageId: target.id,
@@ -417,22 +418,6 @@ async function resolveStage(db: Database, ctx: TenantContext, stageId?: string) 
       : new ValidationError("A organização não tem etapas abertas no funil");
   }
   return stage;
-}
-
-async function recordActivity(
-  db: Database,
-  ctx: TenantContext,
-  leadId: string,
-  type: LeadActivityType,
-  payload: Record<string, unknown>,
-) {
-  await db.insert(leadActivity).values({
-    organizationId: ctx.organizationId,
-    leadId,
-    actorUserId: ctx.userId,
-    type,
-    payload,
-  });
 }
 
 const leadInTenant = (ctx: TenantContext, leadId: string) =>
