@@ -1,0 +1,24 @@
+{
+  "name": "@hospedagens/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@hospedagens/db": "workspace:*",
+    "drizzle-orm": "^0.45.3",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@hospedagens/config": "workspace:*",
+    "@types/node": "^22.20.5",
+    "vitest": "^4.1.11"
+  }
+}
