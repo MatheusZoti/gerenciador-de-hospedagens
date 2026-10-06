@@ -25,21 +25,33 @@ Legenda: ✅ feito · 🔜 próxima · ⬜ planejada
 
 ## 🔜 Fase 1 · MVP do funil
 
-Objetivo: usar o CRM de verdade para acompanhar todos os leads.
+Objetivo: usar o CRM de verdade para acompanhar todos os leads. Entregue em
+3 blocos (um PR cada).
 
-- [ ] Cadastro e edição de **imóveis**
-- [ ] **Leads**: lista com busca e filtros, criar/editar, ficha completa,
-      datas importantes, linha do tempo de atividades
-- [ ] **Kanban** com arrastar e soltar (dnd-kit): mover etapa e reordenar,
-      registrando `stage_changed` na linha do tempo
-- [ ] Atualizar "última mensagem" manualmente ao conversar (até a fase 4)
+**Bloco 1 ✅: imóveis, leads e Kanban**
+
+- [x] Cadastro, edição e ativação/desativação de **imóveis**
+      (`/configuracoes/imoveis`)
+- [x] **Leads**: lista com busca (nome, e-mail, telefone) e filtros por URL,
+      criar/editar, ficha completa com aniversário, excluir, linha do tempo
+      de atividades com notas
+- [x] **Kanban** com arrastar e soltar (dnd-kit: mouse, toque e teclado):
+      mover etapa e reordenar, registrando `stage_changed` na linha do tempo
+- [x] "Registrar conversa agora" atualiza a última mensagem (até a fase 4)
+
+**Bloco 2: configurações, modelos de mensagem e perfil**
+
 - [ ] **Modelos de mensagem** do WhatsApp por etapa (com variáveis: nome,
       imóvel, datas)
 - [ ] **Configurações**: nome e fuso da organização, etapas do funil
 - [ ] **Perfil**: foto (Cloudflare R2), nome, cargo
+
+**Bloco 3: API pública e testes E2E**
+
 - [ ] Ganho rápido: `POST /api/public/v1/leads` com chave de API, para o botão
       de WhatsApp do site WordPress registrar o lead antes de abrir o `wa.me`
-- [ ] Sentry e testes E2E (Playwright) dos fluxos principais
+- [ ] Testes E2E (Playwright) dos fluxos principais na CI
+- [ ] Sentry (quando houver conta e DSN)
 
 ## ⬜ Fase 2 · Reservas e calendário
 

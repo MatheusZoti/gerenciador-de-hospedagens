@@ -1,28 +1,62 @@
 import { type Database, property } from "@hospedagens/db";
 import { and, asc, eq, like } from "drizzle-orm";
-import { z } from "zod";
 import type { TenantContext } from "../context";
+import { NotFoundError } from "../shared/errors";
 import { slugify } from "../shared/slug";
+import { z } from "../shared/zod";
 
 export type Property = typeof property.$inferSelect;
 
-export const createPropertySchema = z.object({
-  name: z.string().trim().min(2).max(120),
-  address: z.string().trim().max(240).optional(),
-  city: z.string().trim().max(120).optional(),
-  maxGuests: z.number().int().positive().max(100).optional(),
-  bedrooms: z.number().int().nonnegative().max(50).optional(),
-  basePriceCents: z.number().int().nonnegative().optional(),
-});
+const optionalText = (max: number) =>
+  z
+    .string()
+    .trim()
+    .max(max)
+    .nullish()
+    .transform((value) => (value === "" ? null : value));
+
+const propertyFields = {
+  name: z.string().trim().min(2, "Informe o nome do imóvel").max(120),
+  address: optionalText(240),
+  city: optionalText(120),
+  maxGuests: z.number().int().positive().max(100).nullish(),
+  bedrooms: z.number().int().nonnegative().max(50).nullish(),
+  basePriceCents: z.number().int().nonnegative().nullish(),
+};
+
+export const createPropertySchema = z.object(propertyFields);
+/** Edição parcial: o slug não muda (será usado em URLs do site de reservas). */
+export const updatePropertySchema = z.object(propertyFields).partial();
 
 export type CreatePropertyInput = z.input<typeof createPropertySchema>;
+export type UpdatePropertyInput = z.input<typeof updatePropertySchema>;
 
-export async function listProperties(db: Database, ctx: TenantContext): Promise<Property[]> {
+export async function listProperties(
+  db: Database,
+  ctx: TenantContext,
+  opts: { activeOnly?: boolean } = {},
+): Promise<Property[]> {
+  const filters = [eq(property.organizationId, ctx.organizationId)];
+  if (opts.activeOnly) filters.push(eq(property.isActive, true));
+
   return db
     .select()
     .from(property)
-    .where(eq(property.organizationId, ctx.organizationId))
+    .where(and(...filters))
     .orderBy(asc(property.name));
+}
+
+export async function getProperty(
+  db: Database,
+  ctx: TenantContext,
+  propertyId: string,
+): Promise<Property> {
+  const [found] = await db
+    .select()
+    .from(property)
+    .where(and(eq(property.id, propertyId), eq(property.organizationId, ctx.organizationId)));
+  if (!found) throw new NotFoundError("Imóvel");
+  return found;
 }
 
 export async function createProperty(
@@ -39,6 +73,55 @@ export async function createProperty(
     .returning();
   if (!created) throw new Error("Falha ao criar imóvel");
   return created;
+}
+
+export async function updateProperty(
+  db: Database,
+  ctx: TenantContext,
+  propertyId: string,
+  input: UpdatePropertyInput,
+): Promise<Property> {
+  const data = updatePropertySchema.parse(input);
+  if (Object.values(data).every((value) => value === undefined)) {
+    return getProperty(db, ctx, propertyId);
+  }
+
+  const [updated] = await db
+    .update(property)
+    .set(data)
+    .where(and(eq(property.id, propertyId), eq(property.organizationId, ctx.organizationId)))
+    .returning();
+  if (!updated) throw new NotFoundError("Imóvel");
+  return updated;
+}
+
+/** Imóveis inativos somem das listas de seleção, mas mantêm o histórico. */
+export async function setPropertyActive(
+  db: Database,
+  ctx: TenantContext,
+  propertyId: string,
+  isActive: boolean,
+): Promise<Property> {
+  const [updated] = await db
+    .update(property)
+    .set({ isActive })
+    .where(and(eq(property.id, propertyId), eq(property.organizationId, ctx.organizationId)))
+    .returning();
+  if (!updated) throw new NotFoundError("Imóvel");
+  return updated;
+}
+
+/** Garante que o imóvel existe e pertence à organização. */
+export async function assertPropertyInTenant(
+  db: Database,
+  ctx: TenantContext,
+  propertyId: string,
+): Promise<void> {
+  const [owned] = await db
+    .select({ id: property.id })
+    .from(property)
+    .where(and(eq(property.id, propertyId), eq(property.organizationId, ctx.organizationId)));
+  if (!owned) throw new NotFoundError("Imóvel");
 }
 
 async function uniquePropertySlug(db: Database, ctx: TenantContext, name: string) {

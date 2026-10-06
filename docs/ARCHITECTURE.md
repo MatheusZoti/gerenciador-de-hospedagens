@@ -98,6 +98,9 @@ app (páginas)  →  modules/*/actions  →  @hospedagens/core  →  @hospedagen
   um serviço do `core`. As exceções são a infraestrutura de autenticação
   (`lib/auth.ts` e `lib/session.ts`) e o script de seed.
 - O `core` não importa nada de `next`, `react` ou `better-auth`.
+- Componentes de cliente (`"use client"`) só importam **tipos** do `core`;
+  os dados chegam prontos do servidor. Assim o driver do banco nunca vai
+  para o navegador.
 - O `db` não conhece regras de negócio: só tabelas, tipos e conexão.
 
 ## Multi-tenancy

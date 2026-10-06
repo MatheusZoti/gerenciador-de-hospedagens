@@ -10,7 +10,8 @@ import { greeting, monthLabel } from "@/lib/format";
 import { requireAppSession } from "@/lib/session";
 import { FinanceSummary } from "@/modules/finance/components/finance-summary";
 import { FunnelSummary } from "@/modules/pipeline/components/funnel-summary";
-import { KanbanBoard } from "@/modules/pipeline/components/kanban-board";
+import { KanbanPreview } from "@/modules/pipeline/components/kanban-preview";
+import { toKanbanColumns } from "@/modules/pipeline/kanban-data";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -48,7 +49,7 @@ export default async function DashboardPage() {
             </Link>
           </Button>
         </div>
-        <KanbanBoard columns={board} variant="preview" />
+        <KanbanPreview columns={toKanbanColumns(board)} />
       </section>
 
       <section aria-labelledby="financeiro" className="flex flex-col gap-4">

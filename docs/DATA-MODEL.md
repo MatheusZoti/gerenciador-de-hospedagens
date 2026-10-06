@@ -65,12 +65,15 @@ erDiagram
   lead ||--o{ lead_activity : historico
 ```
 
+> Datas importantes do lead: o aniversário fica em `lead.birthday`; a última
+> estadia virá das reservas (fase 2). Uma tabela própria de datas só será
+> criada se surgir necessidade de datas livres com lembrete.
+
 ## Planejado
 
 | Tabela | Fase | Campos principais |
 |---|---|---|
 | `organization_settings` | 1 | `time_zone` (padrão `America/Sao_Paulo`), `currency`, modelos de mensagem |
-| `lead_important_date` | 1 | `lead_id`, `label` (aniversário, última estadia...), `date`, `remind` |
 | `api_key` | 1 | `organization_id`, `name`, `hash`, `last_used_at` (API pública / site) |
 | `reservation` | 2 | `property_id`, `lead_id`, `channel` (`direct`/`airbnb`/`booking`), `check_in`, `check_out`, `guests`, `status` (`hold`/`confirmed`/`cancelled`/`completed`), `total_cents`, `external_uid` |
 | `calendar_feed` | 2 | `property_id`, `channel`, `import_url`, `last_synced_at`, `last_error` |

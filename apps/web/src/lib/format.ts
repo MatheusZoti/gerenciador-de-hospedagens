@@ -51,3 +51,24 @@ export function greeting({ now = new Date(), timeZone = DEFAULT_TIME_ZONE } = {}
 export function monthLabel({ now = new Date(), timeZone = DEFAULT_TIME_ZONE } = {}): string {
   return new Intl.DateTimeFormat("pt-BR", { timeZone, month: "long", year: "numeric" }).format(now);
 }
+
+/** "2026-11-15" → "15/11/2026" (datas sem fuso). */
+export function formatDate(isoDate: string): string {
+  const [year, month, day] = isoDate.split("-");
+  return `${day}/${month}/${year}`;
+}
+
+/** Período desejado: "15/11–20/11", "a partir de 15/11" ou `null`. */
+export function formatPeriod(checkIn: string | null, checkOut: string | null): string | null {
+  if (checkIn && checkOut) return `${formatShortDate(checkIn)}–${formatShortDate(checkOut)}`;
+  if (checkIn) return `a partir de ${formatShortDate(checkIn)}`;
+  if (checkOut) return `até ${formatShortDate(checkOut)}`;
+  return null;
+}
+
+/** "5511987654321" → "(11) 98765-4321"; números estrangeiros ficam em "+<E.164>". */
+export function formatPhone(phone: string | null): string | null {
+  if (!phone) return null;
+  const match = phone.match(/^55(\d{2})(\d{4,5})(\d{4})$/);
+  return match ? `(${match[1]}) ${match[2]}-${match[3]}` : `+${phone}`;
+}

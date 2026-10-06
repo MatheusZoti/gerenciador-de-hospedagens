@@ -39,6 +39,22 @@ Antes de commitar: `pnpm lint && pnpm typecheck && pnpm test && pnpm build`.
 7. **Novo serviço com dados → teste de isolamento** no estilo de
    `packages/core/src/tenancy.test.ts`.
 
+## Padrões do app web
+
+- **Fronteira cliente/servidor:** componentes `"use client"` nunca importam
+  valores de `@hospedagens/core` ou `@hospedagens/db` (só `import type`), pois
+  isso levaria o driver do Postgres para o navegador. Dados prontos para
+  exibir são montados no servidor (ex.: `modules/pipeline/kanban-data.ts`).
+- **Server Actions** ficam em `apps/web/src/modules/<modulo>/actions.ts`:
+  `requireAppSession()` → serviço do `core` → `revalidatePath`. Erros
+  esperados viram `ActionState` com `toActionError` (`lib/actions.ts`); o
+  tipo `ActionState` vem de `lib/action-state.ts` (seguro para o cliente).
+- **Formulários:** `useActionState` + `onSubmit` com `startTransition` (não
+  `action={...}`), para não perder o que foi digitado quando a validação
+  falha. Campos via `FormField` + `fieldProps` (`components/form-field.tsx`).
+  Leitura do FormData com `lib/form.ts` ("" vira `null` = limpar).
+- **Filtros de lista** são formulários GET (estado na URL, funciona sem JS).
+
 ## Convenções
 
 - **Idioma:** código (identificadores) em inglês. Textos de interface,
